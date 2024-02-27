@@ -1,5 +1,7 @@
+import Client from './components/client/Client';
+
 function App() {
-  return <div>labukass</div>;
+  return <Client />;
 }
 
 export default App;
