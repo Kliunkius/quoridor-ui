@@ -31,6 +31,14 @@ const useWebsocketClient = () => {
           setCookie('userId', parsedData.userId);
           break;
         }
+        case MessageTypes.CHECK_STATUS: {
+          console.log(parsedData);
+          break;
+        }
+        case MessageTypes.DEV_INFO: {
+          console.log(parsedData);
+          break;
+        }
         default: {
           console.log(`Sorry, the type ${parsedMessage.type} is not handled`);
         }
@@ -41,7 +49,7 @@ const useWebsocketClient = () => {
       console.log('WebSocket disconnected');
     };
 
-    setWs(ws);
+    setWs(websocket);
 
     return () => {
       // Clean up the WebSocket connection when the component is unmounted
