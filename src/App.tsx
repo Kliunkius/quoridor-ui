@@ -1,7 +1,23 @@
-import Client from './components/client/Client';
+import { useState } from 'react';
+
+import useWebsocketClient from './hooks/useWebsocketClient';
+import { MessageTypes } from './Websockets/websocketTypes';
 
 function App() {
-  return <Client />;
+  const ws = useWebsocketClient();
+  const [counter, setCounter] = useState(1);
+
+  return (
+    <>
+      <button onClick={() => setCounter(counter + 1)}>{counter}</button>
+      <br />
+      <button onClick={() => ws.send('labutis')}>Send message</button>
+      <br />
+      <button onClick={() => ws.send(JSON.stringify({ type: MessageTypes.DEV_INFO }))}>DEV INFO</button>
+      <br />
+      <button onClick={() => ws.send(JSON.stringify({ type: MessageTypes.CHECK_STATUS }))}>STATUS</button>
+    </>
+  );
 }
 
 export default App;
