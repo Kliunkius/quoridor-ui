@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { useState, useEffect } from 'react';
 import { useCookies } from 'react-cookie';
 
-import { Message, MessageTypes } from '../websockets/websocketTypes';
+import { Message, MessageTypes } from './websocketTypes';
 
 const useWebsocketClient = () => {
   const [ws, setWs] = useState<WebSocket>({} as WebSocket);
