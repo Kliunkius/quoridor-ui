@@ -1,0 +1,82 @@
+.square {
+  width: 50px;
+  height: 50px;
+  background-color: lightgray;
+  text-align: center;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.player {
+  background-color: blue;
+}
+
+.opponent {
+  background-color: red;
+}
+
+.wall {
+  width: 25px;
+  height: 25px;
+  background-color: gray;
+  text-align: center;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.placed {
+  border-style: dotted;
+  border-color: green;
+}
+
+.mixed-row {
+  height: 50px;
+}
+
+.wall-row {
+  height: 25px;
+}
+
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin-left: 15px;
+}
+
+.input-text {
+  margin-bottom: 20px;
+}
+
+.textbox {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 300px; /* You can adjust the width as needed */
+}
+
+.button-container {
+  margin-top: 20px;
+}
+
+button {
+  margin: 0 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.container {
+  display: flex;
+}
