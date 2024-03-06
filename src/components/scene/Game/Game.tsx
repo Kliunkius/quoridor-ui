@@ -15,14 +15,12 @@ const Game = () => {
           position: constants.CAMERA_DEFAULT_POSITION
         }}
       >
-        <Suspense>
-          <ambientLight color="white" intensity={3} />
-          <mesh position={constants.BOARD_STARTING_POSITION}>
-            <Board position={constants.BOARD_STARTING_POSITION} />
-            <meshBasicMaterial />
-          </mesh>
-          <Lava position={constants.LAVA_STARTING_POSITION} />
-        </Suspense>
+        <ambientLight color="white" intensity={3} />
+        <mesh position={constants.BOARD_STARTING_POSITION}>
+          <Board position={constants.BOARD_STARTING_POSITION} />
+          <meshBasicMaterial />
+        </mesh>
+        <Lava position={constants.LAVA_STARTING_POSITION} />
       </Canvas>
     </div>
   );
