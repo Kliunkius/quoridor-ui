@@ -1,7 +1,9 @@
 import { useState } from 'react';
 
 import useWebsocketClient from './hooks/useWebsocketClient';
-import { MessageTypes } from './Websockets/websocketTypes';
+import { MessageTypes } from './websockets/websocketTypes';
+
+import Game from './components/scene/Game/Game';
 
 function App() {
   const ws = useWebsocketClient();
@@ -16,6 +18,7 @@ function App() {
       <button onClick={() => ws.send(JSON.stringify({ type: MessageTypes.DEV_INFO }))}>DEV INFO</button>
       <br />
       <button onClick={() => ws.send(JSON.stringify({ type: MessageTypes.CHECK_STATUS }))}>STATUS</button>
+      <Game />
     </>
   );
 }
