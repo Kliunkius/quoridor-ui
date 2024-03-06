@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import useWebsocketClient from './hooks/useWebsocketClient';
-import { MessageTypes } from './websockets/websocketTypes';
+import { MessageTypes } from './hooks/websocketTypes';
 
 import Game from './components/scene/Game/Game';
 
