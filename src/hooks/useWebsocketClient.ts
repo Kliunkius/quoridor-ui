@@ -57,8 +57,7 @@ const useWebsocketClient = () => {
         websocket.close();
       }
     };
-    // @ts-ignore
-  }, []);
+  }, [ws, cookies.userId, setCookie]);
 
   return ws;
 };
