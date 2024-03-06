@@ -1,4 +1,3 @@
-import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import * as constants from '../constants';
 import './Game.css';

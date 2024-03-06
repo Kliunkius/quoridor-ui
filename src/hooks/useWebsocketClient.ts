@@ -6,7 +6,7 @@ import { Message, MessageTypes } from './websocketTypes';
 
 const useWebsocketClient = () => {
   const [ws, setWs] = useState<WebSocket>({} as WebSocket);
-  const [cookies, setCookie, removeCookie] = useCookies<string>(['']);
+  const [cookies, setCookie] = useCookies<string>(['']);
 
   useEffect(() => {
     if (!_.isEmpty(ws)) {
@@ -57,6 +57,7 @@ const useWebsocketClient = () => {
         websocket.close();
       }
     };
+    // @ts-ignore
   }, []);
 
   return ws;
