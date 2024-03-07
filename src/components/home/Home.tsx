@@ -18,8 +18,7 @@ const Home = () => {
       return;
     }
 
-    const response = await createRoom(roomCode);
-    console.log('response', response);
+    await createRoom(roomCode);
     navigate(`/${roomCode}`);
   };
 

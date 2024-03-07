@@ -1,23 +1,19 @@
 import _ from 'lodash';
-import { useCookies } from 'react-cookie';
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
 
 import './TestBoard.css';
 import { Board, RowTypes, SquareTypes } from './types';
-import useWebsocketClient, { formatMessage } from '../../hooks/useWebsocketClient';
+import { formatMessage } from '../../hooks/useWebsocketClient';
 import { Coordinates, MessageTypes } from '../../hooks/websocketTypes';
 
-const TestBoard = () => {
-  const { roomCode } = useParams();
-  console.log('roomCode', roomCode);
-
+type Props = {
+  board: Board;
+  ws: WebSocket;
+  playerId: string;
+};
+const TestBoard: React.FC<Props> = ({ board, ws, playerId }) => {
   const [move, setMove] = useState('');
-  const [cookies] = useCookies<string>(['']);
-  const [board, setBoard] = useState<Board>({});
-  const playerId = cookies['userId'];
 
-  const ws = useWebsocketClient(roomCode || '', (board: Board) => setBoard(board));
   const keys = Object.keys(board).map((key) => Number(key));
   let indexY = -1;
 
@@ -27,7 +23,7 @@ const TestBoard = () => {
     }
 
     const moveCoordinates = move.split('-');
-    const coordinates: Coordinates = { x: Number(moveCoordinates[1]), y: Number(moveCoordinates[0]) };
+    const coordinates: Coordinates = { y: Number(moveCoordinates[0]), x: Number(moveCoordinates[1]) };
 
     ws.send(formatMessage(MessageTypes.MOVE, { type: SquareTypes.Wall, coordinates }));
   };
@@ -36,6 +32,11 @@ const TestBoard = () => {
     if (_.isEmpty(move)) {
       return;
     }
+
+    const moveCoordinates = move.split('-');
+    const coordinates: Coordinates = { y: Number(moveCoordinates[0]), x: Number(moveCoordinates[1]) };
+
+    ws.send(formatMessage(MessageTypes.MOVE, { type: SquareTypes.Player, coordinates }));
   };
 
   const handleInputChange = (event: any) => {
@@ -45,35 +46,41 @@ const TestBoard = () => {
   return (
     <div className="container">
       <table>
-        {keys.map((key) => {
-          const row = board[key].row;
-          let indexX = 0;
-          indexY++;
-          const squares = row.map((square) => {
-            let className = '';
-            if (square.type === SquareTypes.Player) {
-              className = 'square';
-              if (!_.isEmpty(square.playerId)) {
-                className += square.playerId === playerId ? ' player' : ' opponent';
+        <tbody>
+          {keys.map((key) => {
+            const squares = board[key].squares;
+            let indexX = 0;
+            indexY++;
+            const renderedSquares = squares.map((square) => {
+              let className = '';
+              if (square.type === SquareTypes.Player) {
+                className = 'square';
+                if (!_.isEmpty(square.playerId)) {
+                  className += square.playerId === playerId ? ' player' : ' opponent';
+                }
               }
-            }
-            if (square.type === SquareTypes.Wall) {
-              className = 'wall';
-              if (square.isPlaced) {
-                className += ' placed';
+              if (square.type === SquareTypes.Wall) {
+                className = 'wall';
+                if (square.isPlaced) {
+                  className += ' placed';
+                }
               }
-            }
 
+              return (
+                <td key={`${indexY}-${indexX}`} className={className}>
+                  {indexY}-{indexX++}
+                </td>
+              );
+            });
+
+            const className = board[key].type === RowTypes.Mixed ? 'mixed-row' : 'wall-row';
             return (
-              <td className={className}>
-                {indexY}-{indexX++}
-              </td>
+              <tr key={indexY} className={className}>
+                {renderedSquares}
+              </tr>
             );
-          });
-
-          const className = board[key].type === RowTypes.Mixed ? 'mixed-row' : 'wall-row';
-          return <tr className={className}>{squares}</tr>;
-        })}
+          })}
+        </tbody>
       </table>
       <div className="game-container">
         <input

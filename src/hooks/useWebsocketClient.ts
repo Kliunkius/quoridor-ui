@@ -1,45 +1,72 @@
 import _ from 'lodash';
-import { useState, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useCookies } from 'react-cookie';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { Message, MessageTypes } from './websocketTypes';
+import { Board } from '../components/board/types';
 
 export const formatMessage = (type: MessageTypes, data: any) => {
   return JSON.stringify({ type, data });
 };
 
-const useWebsocketClient = (roomCode: string, handleStateChange: (props: any) => void) => {
-  const [ws, setWs] = useState<WebSocket>({} as WebSocket);
-  const [cookies, setCookie, removeCookie] = useCookies<string>(['']);
+const useWebsocketClient = (handleStateChange: (props: Board) => void) => {
+  const wsRef = useRef<WebSocket>({} as WebSocket);
+  if (!wsRef.current.binaryType) {
+    wsRef.current = new WebSocket('ws://localhost:3005');
+  }
+
+  const [cookies, setCookie, removeCookie] = useCookies<string>(['userId']);
+  const { roomCode } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (!_.isEmpty(ws)) {
-      return;
-    }
+    const ws = wsRef.current;
 
-    const websocket = new WebSocket('ws://localhost:3005');
-
-    websocket.onopen = () => {
-      console.log('WebSocket connected');
-      if (_.isEmpty(cookies.userId)) {
-        websocket.send(formatMessage(MessageTypes.JOIN_ROOM, { roomCode }));
-      }
+    ws.onclose = () => {
+      console.log('WebSocket disconnected');
     };
 
-    websocket.onmessage = (event) => {
+    return () => {
+      // Clean up the WebSocket connection when the component is unmounted
+      ws.close();
+    };
+  }, [wsRef]);
+
+  useEffect(() => {
+    const ws = wsRef.current;
+
+    ws.onopen = () => {
+      console.log('WebSocket connected');
+      if (_.isEmpty(cookies.userId)) {
+        ws.send(formatMessage(MessageTypes.JOIN_ROOM, { roomCode }));
+        return;
+      }
+
+      ws.send(formatMessage(MessageTypes.RECONNECT, { userId: cookies.userId }));
+    };
+
+    ws.onmessage = (event) => {
       const parsedMessage: Message = JSON.parse(event.data);
       const parsedData = parsedMessage.data;
 
       switch (parsedMessage.type) {
         case MessageTypes.JOIN_ROOM: {
-          console.log('parsedData JOIN_ROOM', parsedData);
           handleStateChange(parsedData.board);
           setCookie('userId', parsedData.userId);
           break;
         }
-        case MessageTypes.MOVE: {
-          console.log('parsedData MOVE', parsedData);
+        case MessageTypes.RECONNECT: {
           handleStateChange(parsedData.board);
+          break;
+        }
+        case MessageTypes.MOVE: {
+          handleStateChange(parsedData.board);
+          break;
+        }
+        case MessageTypes.ROOM_DELETED: {
+          removeCookie('userId');
+          navigate(`/`);
           break;
         }
         default: {
@@ -47,23 +74,9 @@ const useWebsocketClient = (roomCode: string, handleStateChange: (props: any) =>
         }
       }
     };
+  }, [handleStateChange, navigate, roomCode, setCookie, cookies.userId, removeCookie]);
 
-    websocket.onclose = () => {
-      removeCookie('userId');
-      console.log('WebSocket disconnected');
-    };
-
-    setWs(websocket);
-
-    return () => {
-      // Clean up the WebSocket connection when the component is unmounted
-      if (!_.isEmpty(ws)) {
-        websocket.close();
-      }
-    };
-  }, [roomCode, ws, handleStateChange, cookies.userId]);
-
-  return ws;
+  return wsRef.current;
 };
 
 export default useWebsocketClient;

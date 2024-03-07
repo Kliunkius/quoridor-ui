@@ -14,7 +14,7 @@ type BoardSquare<T> = T extends SquareTypes.Player
     ? { type: T; isPlaced: boolean }
     : never;
 
-type BoardRow<T> = { type: RowTypes; row: BoardSquare<T>[] };
+type BoardRow<T> = { type: RowTypes; squares: BoardSquare<T>[] };
 
 export type Board = Record<number, BoardRow<SquareTypes>>;
 
@@ -24,10 +24,10 @@ const createRow = (type: RowTypes): BoardRow<SquareTypes> => {
   const array = Array.from(Array(BOARD_WIDTH).keys());
   const row: BoardRow<SquareTypes> = {
     type,
-    row:
+    squares:
       type === RowTypes.Mixed
         ? array.map((index) => {
-            return index % 2 ? { type: SquareTypes.Player } : { type: SquareTypes.Wall, isPlaced: false };
+            return index % 2 === 0 ? { type: SquareTypes.Player } : { type: SquareTypes.Wall, isPlaced: false };
           })
         : array.map(() => ({ type: SquareTypes.Wall, isPlaced: false }))
   };
