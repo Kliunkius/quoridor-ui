@@ -11,7 +11,7 @@ const Room = () => {
   const [board, setBoard] = useState<Board>({});
   const handleBoardChange = useCallback((board: Board) => setBoard(board), [setBoard]);
 
-  const [cookies] = useCookies<string>(['']);
+  const [cookies] = useCookies<string>(['userId']);
 
   const ws = useWebsocketClient(handleBoardChange);
 
