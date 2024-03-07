@@ -1,29 +1,45 @@
 import _ from 'lodash';
 import { useCookies } from 'react-cookie';
 import { useState } from 'react';
+import { useParams } from 'react-router-dom';
 
 import './TestBoard.css';
-import { Board, BoardTypes, RowTypes, createNewBoard } from './types';
+import { Board, RowTypes, SquareTypes } from './types';
+import useWebsocketClient, { formatMessage } from '../../hooks/useWebsocketClient';
+import { Coordinates, MessageTypes } from '../../hooks/websocketTypes';
 
 const TestBoard = () => {
-  const board: Board = createNewBoard();
+  const { roomCode } = useParams();
+  console.log('roomCode', roomCode);
+
+  const [move, setMove] = useState('');
+  const [cookies] = useCookies<string>(['']);
+  const [board, setBoard] = useState<Board>({});
+  const playerId = cookies['userId'];
+
+  const ws = useWebsocketClient(roomCode || '', (board: Board) => setBoard(board));
   const keys = Object.keys(board).map((key) => Number(key));
   let indexY = -1;
 
-  const [roomCode, setRoomCode] = useState('');
-  const [cookies] = useCookies<string>(['']);
-  const playerId = cookies['userId'];
+  const handlePlaceWall = () => {
+    if (_.isEmpty(move)) {
+      return;
+    }
 
-  const handleJoinGame = () => {};
+    const moveCoordinates = move.split('-');
+    const coordinates: Coordinates = { x: Number(moveCoordinates[1]), y: Number(moveCoordinates[0]) };
 
-  const handleCreateGame = async () => {
-    if (_.isEmpty(roomCode)) {
+    ws.send(formatMessage(MessageTypes.MOVE, { type: SquareTypes.Wall, coordinates }));
+  };
+
+  const handleMovePlayer = () => {
+    if (_.isEmpty(move)) {
       return;
     }
   };
 
   const handleInputChange = (event: any) => {
-    setRoomCode(event.target.value);
+    setMove(event.target.value);
   };
 
   return (
@@ -35,13 +51,13 @@ const TestBoard = () => {
           indexY++;
           const squares = row.map((square) => {
             let className = '';
-            if (square.type === BoardTypes.Square) {
+            if (square.type === SquareTypes.Player) {
               className = 'square';
               if (!_.isEmpty(square.playerId)) {
                 className += square.playerId === playerId ? ' player' : ' opponent';
               }
             }
-            if (square.type === BoardTypes.Wall) {
+            if (square.type === SquareTypes.Wall) {
               className = 'wall';
               if (square.isPlaced) {
                 className += ' placed';
@@ -62,14 +78,14 @@ const TestBoard = () => {
       <div className="game-container">
         <input
           type="text"
-          placeholder="Enter room code"
-          value={roomCode}
+          placeholder="Enter square coordinates"
+          value={move}
           onChange={handleInputChange}
           className="textbox"
         />
         <div className="button-container">
-          <button onClick={handleJoinGame}>Join Game</button>
-          <button onClick={handleCreateGame}>Create Game</button>
+          <button onClick={handlePlaceWall}>Place Wall</button>
+          <button onClick={handleMovePlayer}>Move Player</button>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
-export enum BoardTypes {
-  Square,
+export enum SquareTypes {
+  Player,
   Wall
 }
 
@@ -8,28 +8,28 @@ export enum RowTypes {
   Walls
 }
 
-type BoardSquare<T> = T extends BoardTypes.Square
+type BoardSquare<T> = T extends SquareTypes.Player
   ? { type: T; playerId?: string }
-  : T extends BoardTypes.Wall
+  : T extends SquareTypes.Wall
     ? { type: T; isPlaced: boolean }
     : never;
 
 type BoardRow<T> = { type: RowTypes; row: BoardSquare<T>[] };
 
-export type Board = Record<number, BoardRow<BoardTypes>>;
+export type Board = Record<number, BoardRow<SquareTypes>>;
 
 const BOARD_WIDTH = 17;
 
-const createRow = (type: RowTypes): BoardRow<BoardTypes> => {
+const createRow = (type: RowTypes): BoardRow<SquareTypes> => {
   const array = Array.from(Array(BOARD_WIDTH).keys());
-  const row: BoardRow<BoardTypes> = {
+  const row: BoardRow<SquareTypes> = {
     type,
     row:
       type === RowTypes.Mixed
         ? array.map((index) => {
-            return index % 2 ? { type: BoardTypes.Square } : { type: BoardTypes.Wall, isPlaced: false };
+            return index % 2 ? { type: SquareTypes.Player } : { type: SquareTypes.Wall, isPlaced: false };
           })
-        : array.map(() => ({ type: BoardTypes.Wall, isPlaced: false }))
+        : array.map(() => ({ type: SquareTypes.Wall, isPlaced: false }))
   };
   return row;
 };

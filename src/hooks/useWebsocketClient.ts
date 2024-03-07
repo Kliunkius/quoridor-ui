@@ -4,9 +4,13 @@ import { useCookies } from 'react-cookie';
 
 import { Message, MessageTypes } from './websocketTypes';
 
-const useWebsocketClient = () => {
+export const formatMessage = (type: MessageTypes, data: any) => {
+  return JSON.stringify({ type, data });
+};
+
+const useWebsocketClient = (roomCode: string, handleStateChange: (props: any) => void) => {
   const [ws, setWs] = useState<WebSocket>({} as WebSocket);
-  const [cookies, setCookie] = useCookies<string>(['']);
+  const [cookies, setCookie, removeCookie] = useCookies<string>(['']);
 
   useEffect(() => {
     if (!_.isEmpty(ws)) {
@@ -18,7 +22,7 @@ const useWebsocketClient = () => {
     websocket.onopen = () => {
       console.log('WebSocket connected');
       if (_.isEmpty(cookies.userId)) {
-        websocket.send(JSON.stringify({ type: MessageTypes.CONNECT }));
+        websocket.send(formatMessage(MessageTypes.JOIN_ROOM, { roomCode }));
       }
     };
 
@@ -27,16 +31,15 @@ const useWebsocketClient = () => {
       const parsedData = parsedMessage.data;
 
       switch (parsedMessage.type) {
-        case MessageTypes.CONNECT: {
+        case MessageTypes.JOIN_ROOM: {
+          console.log('parsedData JOIN_ROOM', parsedData);
+          handleStateChange(parsedData.board);
           setCookie('userId', parsedData.userId);
           break;
         }
-        case MessageTypes.CHECK_STATUS: {
-          console.log(parsedData);
-          break;
-        }
-        case MessageTypes.DEV_INFO: {
-          console.log(parsedData);
+        case MessageTypes.MOVE: {
+          console.log('parsedData MOVE', parsedData);
+          handleStateChange(parsedData.board);
           break;
         }
         default: {
@@ -46,6 +49,7 @@ const useWebsocketClient = () => {
     };
 
     websocket.onclose = () => {
+      removeCookie('userId');
       console.log('WebSocket disconnected');
     };
 
@@ -57,7 +61,7 @@ const useWebsocketClient = () => {
         websocket.close();
       }
     };
-  }, [ws, cookies.userId, setCookie]);
+  }, [roomCode, ws, handleStateChange, cookies.userId]);
 
   return ws;
 };
