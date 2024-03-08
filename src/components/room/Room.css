@@ -3,3 +3,13 @@
   align-items: center;
   justify-content: center;
 }
+
+.player-container {
+  display: flex;
+  justify-content: left;
+  flex-direction: column;
+}
+
+.checkmark {
+  color: rgba(0, 255, 0, 255);
+}

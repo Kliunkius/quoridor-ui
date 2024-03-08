@@ -10,8 +10,9 @@ type Props = {
   board: Board;
   ws: WebSocket;
   playerId: string;
+  yourTurn: boolean;
 };
-const TestBoard: React.FC<Props> = ({ board, ws, playerId }) => {
+const TestBoard: React.FC<Props> = ({ board, ws, playerId, yourTurn }) => {
   const [move, setMove] = useState('');
 
   const keys = Object.keys(board).map((key) => Number(key));
@@ -91,8 +92,12 @@ const TestBoard: React.FC<Props> = ({ board, ws, playerId }) => {
           className="textbox"
         />
         <div className="button-container">
-          <button onClick={handlePlaceWall}>Place Wall</button>
-          <button onClick={handleMovePlayer}>Move Player</button>
+          <button onClick={handlePlaceWall} disabled={!yourTurn}>
+            Place Wall
+          </button>
+          <button onClick={handleMovePlayer} disabled={!yourTurn}>
+            Move Player
+          </button>
         </div>
       </div>
     </div>

@@ -1,24 +1,19 @@
 import _ from 'lodash';
 import { useEffect, useRef } from 'react';
-import { useCookies } from 'react-cookie';
-import { useNavigate, useParams } from 'react-router-dom';
 
 import { Message, MessageTypes } from './websocketTypes';
-import { Board } from '../components/board/types';
 
 export const formatMessage = (type: MessageTypes, data: any) => {
   return JSON.stringify({ type, data });
 };
 
-const useWebsocketClient = (handleStateChange: (props: Board) => void) => {
+type StateChangeMap = Record<MessageTypes, (props: any) => void>;
+
+const useWebsocketClient = (handleStateChangeMap: StateChangeMap, userId: string, roomCode: string) => {
   const wsRef = useRef<WebSocket>({} as WebSocket);
   if (!wsRef.current.binaryType) {
     wsRef.current = new WebSocket('ws://localhost:3005');
   }
-
-  const [cookies, setCookie, removeCookie] = useCookies<string>(['userId']);
-  const { roomCode } = useParams();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const ws = wsRef.current;
@@ -38,43 +33,23 @@ const useWebsocketClient = (handleStateChange: (props: Board) => void) => {
 
     ws.onopen = () => {
       console.log('WebSocket connected');
-      if (_.isEmpty(cookies.userId)) {
+      if (_.isEmpty(userId)) {
         ws.send(formatMessage(MessageTypes.JOIN_ROOM, { roomCode }));
         return;
       }
 
-      ws.send(formatMessage(MessageTypes.RECONNECT, { userId: cookies.userId }));
+      ws.send(formatMessage(MessageTypes.RECONNECT, { userId }));
     };
 
     ws.onmessage = (event) => {
       const parsedMessage: Message = JSON.parse(event.data);
       const parsedData = parsedMessage.data;
+      console.log('parsedMessage type', parsedMessage.type);
 
-      switch (parsedMessage.type) {
-        case MessageTypes.JOIN_ROOM: {
-          handleStateChange(parsedData.board);
-          setCookie('userId', parsedData.userId);
-          break;
-        }
-        case MessageTypes.RECONNECT: {
-          handleStateChange(parsedData.board);
-          break;
-        }
-        case MessageTypes.MOVE: {
-          handleStateChange(parsedData.board);
-          break;
-        }
-        case MessageTypes.ROOM_DELETED: {
-          removeCookie('userId');
-          navigate(`/`);
-          break;
-        }
-        default: {
-          console.log(`Sorry, the type ${parsedMessage.type} is not handled`);
-        }
-      }
+      const stateChangeFunction = handleStateChangeMap[parsedMessage.type];
+      stateChangeFunction(parsedData);
     };
-  }, [handleStateChange, navigate, roomCode, setCookie, cookies.userId, removeCookie]);
+  }, [handleStateChangeMap, roomCode, userId]);
 
   return wsRef.current;
 };

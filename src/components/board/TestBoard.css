@@ -25,8 +25,7 @@
 }
 
 .placed {
-  border-style: dotted;
-  border-color: green;
+  background-color: green;
 }
 
 .mixed-row {
