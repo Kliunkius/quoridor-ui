@@ -44,7 +44,6 @@ const useWebsocketClient = (handleStateChangeMap: StateChangeMap, userId: string
     ws.onmessage = (event) => {
       const parsedMessage: Message = JSON.parse(event.data);
       const parsedData = parsedMessage.data;
-      console.log('parsedMessage type', parsedMessage.type);
 
       const stateChangeFunction = handleStateChangeMap[parsedMessage.type];
       stateChangeFunction(parsedData);

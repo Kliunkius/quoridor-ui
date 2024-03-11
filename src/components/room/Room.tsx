@@ -11,7 +11,6 @@ import { MessageTypes } from '../../hooks/websocketTypes';
 
 type Player = {
   ready: boolean;
-  isYou: boolean;
   name: string;
 };
 
@@ -29,21 +28,20 @@ const Room = () => {
   const handleBoardChangeMap = useMemo(() => {
     return {
       [MessageTypes.JOIN_ROOM]: (props: any) => {
-        console.log('nu labas');
         setCookie('userId', props.userId);
         setOtherPlayer(props.otherPlayer);
         setYourName(props.yourName);
-        setYourTurn(props.yourTurn);
+        setBoard(props.board);
       },
       [MessageTypes.READY]: (props: any) => {
-        setBoard(props.board);
+        setYourTurn(props.yourTurn);
       },
       [MessageTypes.RECONNECT]: (props: any) => {
         setBoard(props.board);
+        setYourTurn(props.yourTurn);
       },
       [MessageTypes.MOVE]: (props: any) => {
         setBoard(props.board);
-        console.log('props.yourTurn', props.yourTurn);
         setYourTurn(props.yourTurn);
       },
       [MessageTypes.ROOM_DELETED]: (props: any) => {
@@ -61,29 +59,18 @@ const Room = () => {
   };
 
   return (
-    <>
-      {_.isEmpty(otherPlayer) && <div>waiting for opponent to join</div>}
-      {!_.isEmpty(otherPlayer) && playerReady && !otherPlayer.ready && <div>waiting for opponent to ready up</div>}
-      <div className="player-container">
-        <div>
-          <span>{yourName + '(You)'}</span>
-          {playerReady && <span className="checkmark">+</span>}
-        </div>
-        {otherPlayer && (
-          <div>
-            <span>{otherPlayer.name}</span>
-            {otherPlayer.ready && <span className="checkmark">+</span>}
-          </div>
-        )}
+    <div className="container">
+      <div className="messages-container">
+        {_.isEmpty(otherPlayer) && <div>waiting for opponent to join</div>}
+        {!_.isEmpty(otherPlayer) && playerReady && !otherPlayer.ready && <div>waiting for opponent to ready up</div>}
+        <div>{yourName + '(You)'}</div>
+        {otherPlayer && <div>{otherPlayer.name}</div>}
+        {!playerReady && !_.isEmpty(otherPlayer) && <button onClick={handleReadyClick}>Ready</button>}
       </div>
       <div className="container">
-        {!_.isEmpty(board) ? (
-          <TestBoard board={board} ws={ws} playerId={cookies.userId} yourTurn={yourTurn} />
-        ) : (
-          !playerReady && <button onClick={handleReadyClick}>Ready</button>
-        )}
+        {!_.isEmpty(board) && <TestBoard board={board} ws={ws} playerId={cookies.userId} yourTurn={yourTurn} />}
       </div>
-    </>
+    </div>
   );
 };
 

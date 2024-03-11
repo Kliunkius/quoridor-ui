@@ -92,6 +92,7 @@ const TestBoard: React.FC<Props> = ({ board, ws, playerId, yourTurn }) => {
           className="textbox"
         />
         <div className="button-container">
+          {yourTurn ? <div>Your turn</div> : <div>Wait for your turn</div>}
           <button onClick={handlePlaceWall} disabled={!yourTurn}>
             Place Wall
           </button>

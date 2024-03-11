@@ -4,12 +4,8 @@
   justify-content: center;
 }
 
-.player-container {
+.messages-container {
   display: flex;
-  justify-content: left;
   flex-direction: column;
-}
-
-.checkmark {
-  color: rgba(0, 255, 0, 255);
+  margin-right: 50px;
 }
