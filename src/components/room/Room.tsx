@@ -6,8 +6,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import useWebsocketClient, { formatMessage } from '../../hooks/useWebsocketClient';
 import TestBoard from '../board/TestBoard';
 import { Board } from '../board/types';
+// import { Board } from '../board-real/RealTypes';
 import './Room.css';
 import { MessageTypes } from '../../hooks/websocketTypes';
+import RealBoard from '../board-real/RealBoard';
+import Game from '../scene/Game/Game';
+import { Canvas } from '@react-three/fiber';
 
 type Player = {
   ready: boolean;
@@ -58,19 +62,54 @@ const Room = () => {
     ws.send(formatMessage(MessageTypes.READY, {}));
   };
 
+  if (playerReady) console.log('You are ready');
+  if (otherPlayer?.ready) console.log('Other player is ready');
+
   return (
-    <div className="container">
-      <div className="messages-container">
-        {_.isEmpty(otherPlayer) && <div>waiting for opponent to join</div>}
-        {!_.isEmpty(otherPlayer) && playerReady && !otherPlayer.ready && <div>waiting for opponent to ready up</div>}
-        <div>{yourName + '(You)'}</div>
-        {otherPlayer && <div>{otherPlayer.name}</div>}
-        {!playerReady && !_.isEmpty(otherPlayer) && <button onClick={handleReadyClick}>Ready</button>}
-      </div>
+    <>
+      {/* {!_.isEmpty(board) && (
+        <div id="game">
+          <Canvas
+            flat
+            linear
+            camera={{
+              position: [0, 15, 2.5]
+            }}
+          >
+            <Game />
+            {!playerReady && !_.isEmpty(otherPlayer) && (
+              <mesh
+                position={[-6, 0.3, 1]}
+                scale={[3, 0.01, 3]}
+                onClick={() => {
+                  handleReadyClick();
+                }}
+              >
+                <boxGeometry />
+                <meshBasicMaterial transparent opacity={0.5} color={'red'} />
+              </mesh>
+            )}
+            {playerReady && otherPlayer?.ready && (
+              <RealBoard board={board} ws={ws} playerId={cookies.userId} yourTurn={yourTurn} />
+            )}
+          </Canvas>
+        </div>
+      )} */}
+      {!_.isEmpty(board) && <TestBoard board={board} ws={ws} playerId={cookies.userId} yourTurn={yourTurn} />}
       <div className="container">
-        {!_.isEmpty(board) && <TestBoard board={board} ws={ws} playerId={cookies.userId} yourTurn={yourTurn} />}
+        <div className="messages-container">
+          {_.isEmpty(otherPlayer) && <div>waiting for opponent to join</div>}
+          {!_.isEmpty(otherPlayer) && playerReady && !otherPlayer.ready && <div>waiting for opponent to ready up</div>}
+          <div>{yourName + '(You)'}</div>
+          {otherPlayer && <div>{otherPlayer.name}</div>}
+          {!playerReady && !_.isEmpty(otherPlayer) && <button onClick={handleReadyClick}>Ready</button>}
+        </div>
+        <div className="container">
+          {/* {!_.isEmpty(board) && <Game board={board} ws={ws} playerId={cookies.userId} yourTurn={yourTurn} />} */}
+          {!_.isEmpty(board) && <TestBoard board={board} ws={ws} playerId={cookies.userId} yourTurn={yourTurn} />}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
