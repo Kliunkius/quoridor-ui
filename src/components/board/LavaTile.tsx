@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { useFrame, useLoader } from '@react-three/fiber';
 import imgLava from '../objects/map.png';
 import imgEmission from '../objects/emission.png';
-import { LAVA_SCALE } from './constants';
+import { LAVA_SCALE } from '../constants';
 import { useState } from 'react';
 
 interface LavaTileProps {
