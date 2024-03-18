@@ -4,10 +4,13 @@ import { useCookies } from 'react-cookie';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import useWebsocketClient, { formatMessage } from '../../hooks/useWebsocketClient';
-import TestBoard from '../board/TestBoard';
-import { Board } from '../board/types';
+import { Board } from '../grid/SquareTypes';
 import './Room.css';
 import { MessageTypes } from '../../hooks/websocketTypes';
+import Grid from '../grid/Grid';
+import StaticBoard from '../board/StaticBoard';
+import { Canvas } from '@react-three/fiber';
+import { CAMERA_STARTING_POSITION } from '../constants';
 
 type Player = {
   ready: boolean;
@@ -58,19 +61,41 @@ const Room = () => {
     ws.send(formatMessage(MessageTypes.READY, {}));
   };
 
+  if (playerReady) console.log('You are ready');
+  if (otherPlayer?.ready) console.log('Other player is ready');
+
   return (
-    <div className="container">
-      <div className="messages-container">
-        {_.isEmpty(otherPlayer) && <div>waiting for opponent to join</div>}
-        {!_.isEmpty(otherPlayer) && playerReady && !otherPlayer.ready && <div>waiting for opponent to ready up</div>}
-        <div>{yourName + '(You)'}</div>
-        {otherPlayer && <div>{otherPlayer.name}</div>}
-        {!playerReady && !_.isEmpty(otherPlayer) && <button onClick={handleReadyClick}>Ready</button>}
-      </div>
-      <div className="container">
-        {!_.isEmpty(board) && <TestBoard board={board} ws={ws} playerId={cookies.userId} yourTurn={yourTurn} />}
-      </div>
-    </div>
+    <>
+      {!_.isEmpty(board) && (
+        <div className="body">
+          <Canvas
+            flat
+            linear
+            camera={{
+              position: CAMERA_STARTING_POSITION
+            }}
+          >
+            <StaticBoard />
+            <Grid board={board} ws={ws} yourTurn={yourTurn} />
+          </Canvas>
+          <div className="user-information">
+            {yourTurn && playerReady && !_.isEmpty(otherPlayer) && <div>Your turn</div>}
+            {!yourTurn && playerReady && !_.isEmpty(otherPlayer) && <div>Enemy's turn</div>}
+            {_.isEmpty(otherPlayer) && <div>waiting for opponent to join</div>}
+            {!_.isEmpty(otherPlayer) && playerReady && !otherPlayer?.ready && (
+              <div>waiting for opponent to ready up</div>
+            )}
+            <div>Your name: {yourName}</div>
+            {otherPlayer && <div>Enemy name: {otherPlayer.name}</div>}
+            {!playerReady && !_.isEmpty(otherPlayer) && (
+              <button className="button-ready" onClick={() => handleReadyClick()}>
+                Ready
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

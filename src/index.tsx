@@ -5,7 +5,7 @@ import './index.css';
 import reportWebVitals from './reportWebVitals';
 import Room from './components/room/Room';
 import Home from './components/home/Home';
-import Game from './components/scene/Game/Game';
+import Game from './components/board/StaticBoard';
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 const router = createBrowserRouter([

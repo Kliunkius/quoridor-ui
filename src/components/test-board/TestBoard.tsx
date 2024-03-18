@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import { useState } from 'react';
 
-import './TestBoard.css';
 import { Board, RowTypes, SquareTypes } from './types';
 import { formatMessage } from '../../hooks/useWebsocketClient';
 import { Coordinates, MessageTypes } from '../../hooks/websocketTypes';
