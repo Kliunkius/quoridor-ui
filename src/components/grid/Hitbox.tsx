@@ -1,20 +1,16 @@
 import { useState } from 'react';
-import { Coordinates, SquareTypes } from './SquareTypes';
-import { formatMessage } from '../../hooks/useWebsocketClient';
-import { MessageTypes } from '../../hooks/websocketTypes';
+import { Coordinates } from './SquareTypes';
 import { CORNER_POSITION, HITBOX_SCALE, SURFACE_ELEVATION } from '../constants';
 import Wall from './Wall';
 
 type PropsHitbox = {
   coordinates: Coordinates;
-  ws: WebSocket;
+  isAvailable: boolean;
+  handlePlaceWall: () => void;
 };
-const Hitbox: React.FC<PropsHitbox> = ({ coordinates, ws }) => {
+const Hitbox: React.FC<PropsHitbox> = ({ coordinates, isAvailable, handlePlaceWall }) => {
   const isRotated = coordinates.y % 2 === 0;
   const [isHover, setIsHover] = useState(false);
-  const handlePlaceWall = () => {
-    ws.send(formatMessage(MessageTypes.MOVE, { type: SquareTypes.Wall, coordinates }));
-  };
   return (
     <>
       <mesh
@@ -24,13 +20,15 @@ const Hitbox: React.FC<PropsHitbox> = ({ coordinates, ws }) => {
         onPointerEnter={() => setIsHover(true)}
         onPointerLeave={() => setIsHover(false)}
         onClick={() => {
-          handlePlaceWall();
+          if (isAvailable) {
+            handlePlaceWall();
+          }
         }}
       >
         <boxGeometry />
         <meshBasicMaterial transparent opacity={0} />
       </mesh>
-      {isHover && <Wall coordinates={coordinates} color="lime" />}
+      {isHover && <Wall coordinates={coordinates} color={isAvailable ? 'lime' : 'red'} />}
     </>
   );
 };

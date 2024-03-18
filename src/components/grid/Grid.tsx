@@ -2,9 +2,10 @@ import _ from 'lodash';
 import { useEffect, useState } from 'react';
 
 import { Board, SquareTypes, Coordinates } from './SquareTypes';
-import HitboxUnavailable from './HitboxUnavailable';
 import Hitbox from './Hitbox';
 import Wall from './Wall';
+import { formatMessage } from '../../hooks/useWebsocketClient';
+import { MessageTypes } from '../../hooks/websocketTypes';
 
 type PropsGrid = {
   board: Board;
@@ -18,23 +19,25 @@ const Grid: React.FC<PropsGrid> = ({ board, ws, yourTurn }) => {
 
   useEffect(() => {
     const gridNew = [<mesh></mesh>];
-    let indexRow = 0;
-    keys.map((row) => {
-      let indexColumn = 0;
-      board[row].squares.map((square) => {
+    keys.map((row, indexRow) => {
+      board[row].squares.map((square, indexColumn) => {
         if (square.type === SquareTypes.Wall) {
           const coordinates: Coordinates = { x: indexColumn, y: indexRow };
-          if (square.isAvailable && yourTurn) {
-            gridNew.push(<Hitbox coordinates={coordinates} ws={ws} />);
-          } else if (!square.isAvailable && square.isWalkable && yourTurn) {
-            gridNew.push(<HitboxUnavailable coordinates={coordinates} />);
+          if (yourTurn && square.isWalkable) {
+            gridNew.push(
+              <Hitbox
+                coordinates={coordinates}
+                isAvailable={square.isAvailable}
+                handlePlaceWall={() =>
+                  ws.send(formatMessage(MessageTypes.MOVE, { type: SquareTypes.Wall, coordinates }))
+                }
+              />
+            );
           } else if (square.isPlaced) {
             gridNew.push(<Wall coordinates={coordinates} color="orange" />);
           }
         }
-        indexColumn++;
       });
-      indexRow++;
     });
     setGrid(gridNew);
   }, [yourTurn]);

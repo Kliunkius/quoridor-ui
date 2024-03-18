@@ -1,5 +1,5 @@
 export const CAMERA_DEFAULT_POSITION: [number, number, number] = [0, 7.5, 1.5];
-export const CAMERA_STARTING_POSITION: [number, number, number] = [0, -10, -3];
+export const CAMERA_STARTING_POSITION: [number, number, number] = [0, -9, -3];
 export const CAMERA_TARGET_POSITION: number = 0;
 export const MAX_CAMERA_POLAR_ANLGE: number = Math.PI * 0.47;
 export const MIN_CAMERA_POLAR_ANLGE: number = 0.2;
