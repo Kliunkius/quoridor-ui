@@ -1,9 +1,10 @@
 import _ from 'lodash';
 import { useState } from 'react';
 
-import { Board, RowTypes, SquareTypes } from './types';
+import { Board, RowTypes, SquareType } from './types';
 import { formatMessage } from '../../hooks/useWebsocketClient';
 import { Coordinates, MessageTypes } from '../../hooks/websocketTypes';
+import './TestBoard.css';
 
 type Props = {
   board: Board;
@@ -15,8 +16,6 @@ const TestBoard: React.FC<Props> = ({ board, ws, playerId, yourTurn }) => {
   const [move, setMove] = useState('');
 
   const keys = Object.keys(board).map((key) => Number(key));
-  let indexY = -1;
-
   const handlePlaceWall = () => {
     if (_.isEmpty(move)) {
       return;
@@ -25,7 +24,7 @@ const TestBoard: React.FC<Props> = ({ board, ws, playerId, yourTurn }) => {
     const moveCoordinates = move.split('-');
     const coordinates: Coordinates = { y: Number(moveCoordinates[0]), x: Number(moveCoordinates[1]) };
 
-    ws.send(formatMessage(MessageTypes.MOVE, { type: SquareTypes.Wall, coordinates }));
+    ws.send(formatMessage(MessageTypes.MOVE, { type: SquareType.Wall, coordinates }));
   };
 
   const handleMovePlayer = () => {
@@ -36,7 +35,7 @@ const TestBoard: React.FC<Props> = ({ board, ws, playerId, yourTurn }) => {
     const moveCoordinates = move.split('-');
     const coordinates: Coordinates = { y: Number(moveCoordinates[0]), x: Number(moveCoordinates[1]) };
 
-    ws.send(formatMessage(MessageTypes.MOVE, { type: SquareTypes.Player, coordinates }));
+    ws.send(formatMessage(MessageTypes.MOVE, { type: SquareType.Player, coordinates }));
   };
 
   const handleInputChange = (event: any) => {
@@ -47,22 +46,60 @@ const TestBoard: React.FC<Props> = ({ board, ws, playerId, yourTurn }) => {
     <div className="container">
       <table>
         <tbody>
-          {keys.map((key) => {
+          {keys.map((key, indexY) => {
             const squares = board[key].squares;
-            let indexX = 0;
-            indexY++;
-            const renderedSquares = squares.map((square) => {
+            const renderedSquares = squares.map((square, indexX) => {
               let className = '';
-              if (square.type === SquareTypes.Player) {
+              if (square.type === SquareType.Player) {
                 className = 'square';
                 if (!_.isEmpty(square.playerId)) {
                   className += square.playerId === playerId ? ' player' : ' opponent';
                 }
               }
-              if (square.type === SquareTypes.Wall) {
+              if (square.type === SquareType.Wall) {
                 className = 'wall';
-                if (square.isPlaced) {
-                  className += ' placed';
+
+                let hasClass = false;
+
+                if (board[key].type === RowTypes.Mixed) {
+                  if (
+                    square.isPlaced ||
+                    // @ts-ignore
+                    board[key + 1]?.squares[indexX].isPlaced ||
+                    // @ts-ignore
+                    board[key + 2]?.squares[indexX].isPlaced
+                  ) {
+                    hasClass = true;
+                    className += ' placed';
+                  }
+                } else {
+                  if (indexX % 2 === 0) {
+                    if (
+                      square.isPlaced ||
+                      // @ts-ignore
+                      squares[indexX - 1]?.isPlaced ||
+                      // @ts-ignore
+                      squares[indexX - 2]?.isPlaced
+                    ) {
+                      hasClass = true;
+                      className += ' placed';
+                    }
+                  } else {
+                    if (
+                      square.isPlaced ||
+                      // @ts-ignore
+                      squares[indexX - 1]?.isPlaced ||
+                      // @ts-ignore
+                      board[key + 1]?.squares[indexX].isPlaced
+                    ) {
+                      hasClass = true;
+                      className += ' placed';
+                    }
+                  }
+                }
+
+                if (!hasClass) {
+                  className += square.isAvailable ? ' available' : ' unavailable';
                 }
               }
 

@@ -5,7 +5,7 @@ import './index.css';
 import reportWebVitals from './reportWebVitals';
 import Room from './components/room/Room';
 import Home from './components/home/Home';
-import Game from './components/board/StaticBoard';
+import TestRoom from './components/test-room/TestRoom';
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 const router = createBrowserRouter([
@@ -14,13 +14,13 @@ const router = createBrowserRouter([
     element: <Home />
   },
   {
-    path: '/:roomCode',
+    path: '/board/:roomCode',
     element: <Room />
+  },
+  {
+    path: '/test-board/:roomCode',
+    element: <TestRoom />
   }
-  // {
-  //   path: '/game',
-  //   element: <Game />
-  // }
 ]);
 
 root.render(<RouterProvider router={router} />);

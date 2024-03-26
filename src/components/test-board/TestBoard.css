@@ -28,6 +28,14 @@
   background-color: green;
 }
 
+.available {
+  background-color: yellow;
+}
+
+.unavailable {
+  background-color: #ff7f7f;
+}
+
 .mixed-row {
   height: 50px;
 }
