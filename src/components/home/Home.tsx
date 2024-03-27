@@ -10,7 +10,7 @@ const Home = () => {
   const navigate = useNavigate();
 
   const handleJoinGame = () => {
-    navigate(`/${roomCode}`);
+    navigate(`/board/${roomCode}`);
   };
 
   const handleCreateGame = async () => {
@@ -19,7 +19,7 @@ const Home = () => {
     }
 
     await createRoom(roomCode);
-    navigate(`/${roomCode}`);
+    navigate(`/board/${roomCode}`);
   };
 
   const handleInputChange = (event: any) => {
