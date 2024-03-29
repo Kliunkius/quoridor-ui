@@ -16,7 +16,7 @@ export type Coordinates = {
 };
 
 export type BoardSquare<T> = T extends SquareTypes.Player
-  ? { type: T; playerId?: string }
+  ? { type: T; playerId?: string; isAvailable: boolean }
   : T extends SquareTypes.Wall
     ? { type: T; isPlaced: boolean; isAvailable: boolean; isWalkable: boolean }
     : never;

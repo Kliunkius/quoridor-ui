@@ -38,6 +38,7 @@ const Room = () => {
       },
       [MessageTypes.READY]: (props: any) => {
         setYourTurn(props.yourTurn);
+        setBoard(props.board);
       },
       [MessageTypes.RECONNECT]: (props: any) => {
         setBoard(props.board);
@@ -76,7 +77,7 @@ const Room = () => {
             }}
           >
             <StaticBoard />
-            <Grid board={board} ws={ws} yourTurn={yourTurn} />
+            <Grid board={board} ws={ws} yourTurn={yourTurn} playerID={cookies.userId} />
           </Canvas>
           <div className="user-information">
             {yourTurn && playerReady && !_.isEmpty(otherPlayer) && <div>Your turn</div>}
