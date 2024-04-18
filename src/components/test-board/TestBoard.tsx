@@ -61,10 +61,41 @@ const TestBoard: React.FC<Props> = ({ board, ws, playerId, yourTurn }) => {
 
                 let hasClass = false;
 
-                if (!square.isWalkable) {
-                  hasClass = true;
-                  className += ' placed';
-                }
+                if (board[key].type === RowTypes.Mixed) {
+                  if (
+                    square.isPlaced ||
+                    // @ts-ignore
+                    board[key + 1]?.squares[indexX].isPlaced ||
+                    // @ts-ignore
+                    board[key + 2]?.squares[indexX].isPlaced
+                  ) {
+                    hasClass = true;
+                    className += ' placed';
+                  }
+                } else {
+                  if (indexX % 2 === 0) {
+                    if (
+                      square.isPlaced ||
+                      // @ts-ignore
+                      squares[indexX - 1]?.isPlaced ||
+                      // @ts-ignore
+                      squares[indexX - 2]?.isPlaced
+                    ) {
+                      hasClass = true;
+                      className += ' placed';
+                    }
+                  } else {
+                    if (
+                      square.isPlaced ||
+                      // @ts-ignore
+                      squares[indexX - 1]?.isPlaced ||
+                      // @ts-ignore
+                      board[key + 1]?.squares[indexX].isPlaced
+                    ) {
+                      hasClass = true;
+                      className += ' placed';
+                    }
+                  }
 
                 if (!hasClass) {
                   className += square.isAvailable ? ' available' : ' unavailable';
