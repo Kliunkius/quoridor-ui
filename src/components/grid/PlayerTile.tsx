@@ -5,8 +5,9 @@ import { CORNER_POSITION, SURFACE_ELEVATION } from '../constants';
 
 type PropsPlayerTile = {
   coordinates: Coordinates;
+  handleOnClick: () => void;
 };
-const PlayerTile: React.FC<PropsPlayerTile> = ({ coordinates }) => {
+const PlayerTile: React.FC<PropsPlayerTile> = ({ coordinates, handleOnClick }) => {
   const [opacity, setOpacity] = useState(0);
   useFrame((state) => {
     setOpacity(Math.abs(Math.sin(state.clock.elapsedTime)));
@@ -15,6 +16,7 @@ const PlayerTile: React.FC<PropsPlayerTile> = ({ coordinates }) => {
     <mesh
       position={[CORNER_POSITION + coordinates.x / 2, SURFACE_ELEVATION, CORNER_POSITION + coordinates.y / 2]}
       scale={[0.65, 0.01, 0.65]}
+      onClick={() => handleOnClick()}
     >
       <boxGeometry />
       <meshBasicMaterial transparent opacity={opacity} color={'#00C9FF'} />

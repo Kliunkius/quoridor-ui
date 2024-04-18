@@ -1,13 +1,14 @@
 import _ from 'lodash';
-import { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 
 import { Board, SquareTypes, Coordinates } from './SquareTypes';
 import Hitbox from './Hitbox';
 import Wall from './Wall';
 import { formatMessage } from '../../hooks/useWebsocketClient';
 import { MessageTypes } from '../../hooks/websocketTypes';
-import PlayerTile from './Player';
-import NextMove from './NextMove';
+import PlayerTile from './PlayerTile';
+import NextMoveTile from './NextMoveTile';
+import Gargoyle from '../board/Gargoyle';
 
 type PropsGrid = {
   board: Board;
@@ -15,19 +16,31 @@ type PropsGrid = {
   yourTurn: boolean;
   playerID: string;
 };
+
+type GridMap = Record<string, ReactNode[]>;
+
+const stringifyCoordinates = (coordinates: Coordinates): string => `${coordinates.x}-${coordinates.y}`;
+
 const Grid: React.FC<PropsGrid> = ({ board, ws, yourTurn, playerID }) => {
-  const [grid, setGrid] = useState([<mesh></mesh>]);
+  const [grid, setGrid] = useState<GridMap>({});
+  const [isPressed, setIsPressed] = useState(false);
+  const firstRender = useRef(true);
 
   const keys = Object.keys(board).map((key) => Number(key));
 
   useEffect(() => {
-    const gridNew = [<mesh></mesh>];
+    setIsPressed(false);
+  }, [yourTurn]);
+
+  useEffect(() => {
+    const gridNew: GridMap = {};
     keys.map((row, indexRow) => {
       board[row].squares.map((square, indexColumn) => {
         const coordinates: Coordinates = { x: indexColumn, y: indexRow };
+        const key = stringifyCoordinates(coordinates);
         if (square.type === SquareTypes.Wall) {
           if (yourTurn && square.isWalkable) {
-            gridNew.push(
+            const elementHitbox = (
               <Hitbox
                 coordinates={coordinates}
                 isAvailable={square.isAvailable}
@@ -36,23 +49,28 @@ const Grid: React.FC<PropsGrid> = ({ board, ws, yourTurn, playerID }) => {
                 }
               />
             );
+            gridNew[key] = [...(gridNew[key] || []), elementHitbox];
           } else if (square.isPlaced) {
-            gridNew.push(<Wall coordinates={coordinates} color="orange" />);
+            const elementWall = <Wall coordinates={coordinates} color="orange" />;
+            gridNew[key] = [...(gridNew[key] || []), elementWall];
           }
-        }
-        if (square.type === SquareTypes.Player) {
-          if (yourTurn && square?.playerId === playerID) {
-            gridNew.push(<PlayerTile coordinates={coordinates} />);
+        } else if (square.type === SquareTypes.Player) {
+          if (square?.playerId === playerID) {
+            if (yourTurn) {
+              const elementPlayerTile = (
+                <PlayerTile
+                  coordinates={coordinates}
+                  handleOnClick={() => setIsPressed((prevIsPressed) => !prevIsPressed)}
+                />
+              );
+              gridNew[key] = [...(gridNew[key] || []), elementPlayerTile];
+            }
+            const elementGargoylePlayer = <Gargoyle isEnemy={false} coordinates={coordinates} />;
+            gridNew[key] = [...(gridNew[key] || []), elementGargoylePlayer];
           }
-          if (yourTurn && square.isAvailable) {
-            gridNew.push(
-              <NextMove
-                coordinates={coordinates}
-                handleMovePlayer={() =>
-                  ws.send(formatMessage(MessageTypes.MOVE, { type: SquareTypes.Player, coordinates }))
-                }
-              />
-            );
+          if (square?.playerId && square?.playerId !== playerID) {
+            const elementGargoyleEnemy = <Gargoyle isEnemy={true} coordinates={coordinates} />;
+            gridNew[key] = [...(gridNew[key] || []), elementGargoyleEnemy];
           }
         }
       });
@@ -60,7 +78,37 @@ const Grid: React.FC<PropsGrid> = ({ board, ws, yourTurn, playerID }) => {
     setGrid(gridNew);
   }, [yourTurn]);
 
-  return <>{grid}</>;
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    const gridClone = _.cloneDeep(grid);
+    keys.map((row, indexRow) => {
+      board[row].squares.map((square, indexColumn) => {
+        const coordinates: Coordinates = { x: indexColumn, y: indexRow };
+        const key = stringifyCoordinates(coordinates);
+        if (square.type === SquareTypes.Player && square.isAvailable) {
+          if (isPressed) {
+            const elementNextMove = (
+              <NextMoveTile
+                coordinates={coordinates}
+                handleMovePlayer={() =>
+                  ws.send(formatMessage(MessageTypes.MOVE, { type: SquareTypes.Player, coordinates }))
+                }
+              />
+            );
+            gridClone[key] = [...(gridClone[key] || []), elementNextMove];
+          } else {
+            gridClone[key] = [];
+          }
+        }
+      });
+    });
+    setGrid(gridClone);
+  }, [isPressed]);
+
+  return <>{_.flatMap(Object.keys(grid).map((key) => grid[key]))}</>;
 };
 
 export default Grid;

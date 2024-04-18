@@ -5,7 +5,7 @@ type PropsNextMove = {
   coordinates: Coordinates;
   handleMovePlayer: () => void;
 };
-const NextMove: React.FC<PropsNextMove> = ({ coordinates, handleMovePlayer }) => {
+const NextMoveTile: React.FC<PropsNextMove> = ({ coordinates, handleMovePlayer }) => {
   return (
     <mesh
       position={[CORNER_POSITION + coordinates.x / 2, SURFACE_ELEVATION, CORNER_POSITION + coordinates.y / 2]}
@@ -18,4 +18,4 @@ const NextMove: React.FC<PropsNextMove> = ({ coordinates, handleMovePlayer }) =>
   );
 };
 
-export default NextMove;
+export default NextMoveTile;
