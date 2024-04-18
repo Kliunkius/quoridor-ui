@@ -96,7 +96,7 @@ const TestBoard: React.FC<Props> = ({ board, ws, playerId, yourTurn }) => {
                       className += ' placed';
                     }
                   }
-
+                }
                 if (!hasClass) {
                   className += square.isAvailable ? ' available' : ' unavailable';
                 }
