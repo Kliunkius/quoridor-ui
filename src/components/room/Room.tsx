@@ -1,16 +1,17 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import _ from 'lodash';
 import { useCookies } from 'react-cookie';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import useWebsocketClient, { formatMessage } from '../../hooks/useWebsocketClient';
-import { Board } from '../grid/SquareTypes';
+import { Board, SquareTypes } from '../grid/SquareTypes';
 import './Room.css';
 import { MessageTypes } from '../../hooks/websocketTypes';
 import Grid from '../grid/Grid';
 import StaticBoard from '../board/StaticBoard';
 import { Canvas } from '@react-three/fiber';
-import { CAMERA_STARTING_POSITION } from '../constants';
+import { CAMERA_DEFAULT_POSITION, CAMERA_STARTING_POSITION } from '../constants';
+import CameraRig from '../board/CameraRig';
 
 type Player = {
   ready: boolean;
@@ -23,8 +24,11 @@ const Room = () => {
   const [playerReady, setPlayerReady] = useState<boolean>(false);
   const [yourTurn, setYourTurn] = useState<boolean>(false);
   const [yourName, setYourName] = useState<string>('');
+  const [isPlayerHost, setIsPlayerHost] = useState<boolean>(false);
+  const [boardLoaded, setBoardLoaded] = useState<boolean>(false);
 
   const [cookies, setCookie, removeCookie] = useCookies<string>(['userId']);
+  const [cookieIsHost, setCookieIsHost, removeCookieIsHost] = useCookies<string>(['isHost']);
   const { roomCode } = useParams();
   const navigate = useNavigate();
 
@@ -41,6 +45,7 @@ const Room = () => {
         setBoard(props.board);
       },
       [MessageTypes.RECONNECT]: (props: any) => {
+        // setCookie('isHost', props.isHost);
         setBoard(props.board);
         setYourTurn(props.yourTurn);
       },
@@ -50,10 +55,28 @@ const Room = () => {
       },
       [MessageTypes.ROOM_DELETED]: (props: any) => {
         removeCookie('userId');
+        removeCookieIsHost('isHost');
         navigate(`/`);
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!boardLoaded) {
+      if (board[16]?.squares[8]?.type !== SquareTypes.Player) return;
+      setIsPlayerHost(board[16].squares[8].playerId === cookies.userId || cookieIsHost.isHost === true);
+      setBoardLoaded(true);
+    }
+  }, [board]);
+
+  useEffect(() => {
+    if (cookieIsHost.isHost === true) {
+      return;
+    }
+    if (isPlayerHost) {
+      setCookieIsHost('isHost', 'true');
+    } else setCookieIsHost('isHost', 'false');
+  }, [isPlayerHost]);
 
   const ws = useWebsocketClient(handleBoardChangeMap, cookies.userId, roomCode || '');
 
@@ -73,11 +96,20 @@ const Room = () => {
             flat
             linear
             camera={{
-              position: CAMERA_STARTING_POSITION
+              position: isPlayerHost
+                ? CAMERA_STARTING_POSITION
+                : [CAMERA_STARTING_POSITION[0], CAMERA_STARTING_POSITION[1], -CAMERA_STARTING_POSITION[2]]
             }}
           >
+            <CameraRig
+              position={
+                isPlayerHost
+                  ? CAMERA_DEFAULT_POSITION
+                  : [CAMERA_DEFAULT_POSITION[0], CAMERA_DEFAULT_POSITION[1], -CAMERA_DEFAULT_POSITION[2]]
+              }
+            />
             <StaticBoard />
-            <Grid board={board} ws={ws} yourTurn={yourTurn} playerID={cookies.userId} />
+            <Grid board={board} ws={ws} yourTurn={yourTurn} playerID={cookies.userId} isPlayerHost={isPlayerHost} />
           </Canvas>
           <div className="user-information">
             {yourTurn && playerReady && !_.isEmpty(otherPlayer) && <div>Your turn</div>}

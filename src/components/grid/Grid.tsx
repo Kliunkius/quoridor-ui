@@ -8,20 +8,22 @@ import { formatMessage } from '../../hooks/useWebsocketClient';
 import { MessageTypes } from '../../hooks/websocketTypes';
 import PlayerTile from './PlayerTile';
 import NextMoveTile from './NextMoveTile';
-import Gargoyle from '../board/Gargoyle';
+import GargoylePlayer from '../board/GargoylePlayer';
+import GargoyleEnemy from '../board/GargoyleEnemy';
 
 type PropsGrid = {
   board: Board;
   ws: WebSocket;
   yourTurn: boolean;
   playerID: string;
+  isPlayerHost: boolean;
 };
 
 type GridMap = Record<string, ReactNode[]>;
 
 const stringifyCoordinates = (coordinates: Coordinates): string => `${coordinates.x}-${coordinates.y}`;
 
-const Grid: React.FC<PropsGrid> = ({ board, ws, yourTurn, playerID }) => {
+const Grid: React.FC<PropsGrid> = ({ board, ws, yourTurn, playerID, isPlayerHost }) => {
   const [grid, setGrid] = useState<GridMap>({});
   const [isPressed, setIsPressed] = useState(false);
   const firstRender = useRef(true);
@@ -65,18 +67,17 @@ const Grid: React.FC<PropsGrid> = ({ board, ws, yourTurn, playerID }) => {
               );
               gridNew[key] = [...(gridNew[key] || []), elementPlayerTile];
             }
-            const elementGargoylePlayer = <Gargoyle isEnemy={false} coordinates={coordinates} />;
+            const elementGargoylePlayer = <GargoylePlayer isRotated={!isPlayerHost} coordinates={coordinates} />;
             gridNew[key] = [...(gridNew[key] || []), elementGargoylePlayer];
-          }
-          if (square?.playerId && square?.playerId !== playerID) {
-            const elementGargoyleEnemy = <Gargoyle isEnemy={true} coordinates={coordinates} />;
+          } else if (square?.playerId && square?.playerId !== playerID) {
+            const elementGargoyleEnemy = <GargoyleEnemy isRotated={isPlayerHost} coordinates={coordinates} />;
             gridNew[key] = [...(gridNew[key] || []), elementGargoyleEnemy];
           }
         }
       });
     });
     setGrid(gridNew);
-  }, [yourTurn]);
+  }, [board, yourTurn]);
 
   useEffect(() => {
     if (firstRender.current) {

@@ -30,7 +30,7 @@ const CameraRig: React.FC<CameraRigProps> = ({ position }) => {
   }, []);
   useFrame((state, delta) => {
     if (isMouseUp) {
-      state.camera.position.lerp({ x, y, z }, delta * CAMERA_MOVE_SPEED);
+      state.camera.position.lerp({ x, y, z }, CAMERA_MOVE_SPEED);
       state.camera.lookAt(CAMERA_TARGET_POSITION, CAMERA_TARGET_POSITION, CAMERA_TARGET_POSITION);
     }
   });
