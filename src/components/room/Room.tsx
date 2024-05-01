@@ -45,7 +45,6 @@ const Room = () => {
         setBoard(props.board);
       },
       [MessageTypes.RECONNECT]: (props: any) => {
-        // setCookie('isHost', props.isHost);
         setBoard(props.board);
         setYourTurn(props.yourTurn);
       },
@@ -61,6 +60,11 @@ const Room = () => {
     };
   }, []);
 
+  // Used when board loads until player square contains player with an id.
+  // Then changes isPlayerHost value to true when:
+  // 1) Targeted square id matches current player.
+  // OR
+  // 2) Cookie contains information that player is host.
   useEffect(() => {
     if (!boardLoaded) {
       if (board[16]?.squares[8]?.type !== SquareTypes.Player) return;
@@ -69,6 +73,8 @@ const Room = () => {
     }
   }, [board]);
 
+  // Updates cookie information based on isPlayerHost value,
+  // skips the process if cookie is already true to not overwrite both values to false.
   useEffect(() => {
     if (cookieIsHost.isHost === true) {
       return;
