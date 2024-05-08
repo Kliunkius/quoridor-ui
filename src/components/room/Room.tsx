@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import _ from 'lodash';
 import { useCookies } from 'react-cookie';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -25,10 +25,8 @@ const Room = () => {
   const [yourTurn, setYourTurn] = useState<boolean>(false);
   const [yourName, setYourName] = useState<string>('');
   const [isPlayerHost, setIsPlayerHost] = useState<boolean>(false);
-  const [boardLoaded, setBoardLoaded] = useState<boolean>(false);
 
-  const [cookies, setCookie, removeCookie] = useCookies<string>(['userId']);
-  const [cookieIsHost, setCookieIsHost, removeCookieIsHost] = useCookies<string>(['isHost']);
+  const [cookies, setCookie, removeCookie] = useCookies<string>(['userId', 'isHost']);
   const { roomCode } = useParams();
   const navigate = useNavigate();
 
@@ -39,12 +37,20 @@ const Room = () => {
         setOtherPlayer(props.otherPlayer);
         setYourName(props.yourName);
         setBoard(props.board);
+        if (props.board[16].squares[8].type !== SquareTypes.Player) return;
+        const isPlayerHostValue = props.board[16].squares[8].playerId === props.userId;
+        console.log(isPlayerHost);
+        setIsPlayerHost(isPlayerHostValue);
+        setCookie('isHost', isPlayerHostValue);
       },
       [MessageTypes.READY]: (props: any) => {
         setYourTurn(props.yourTurn);
         setBoard(props.board);
       },
       [MessageTypes.RECONNECT]: (props: any) => {
+        const value = cookies.isHost;
+        console.log(value);
+        setIsPlayerHost(value);
         setBoard(props.board);
         setYourTurn(props.yourTurn);
       },
@@ -54,35 +60,11 @@ const Room = () => {
       },
       [MessageTypes.ROOM_DELETED]: (props: any) => {
         removeCookie('userId');
-        removeCookieIsHost('isHost');
+        removeCookie('isHost');
         navigate(`/`);
       }
     };
   }, []);
-
-  // Used when board loads until player square contains player with an id.
-  // Then changes isPlayerHost value to true when:
-  // 1) Targeted square id matches current player.
-  // OR
-  // 2) Cookie contains information that player is host.
-  useEffect(() => {
-    if (!boardLoaded) {
-      if (board[16]?.squares[8]?.type !== SquareTypes.Player) return;
-      setIsPlayerHost(board[16].squares[8].playerId === cookies.userId || cookieIsHost.isHost === true);
-      setBoardLoaded(true);
-    }
-  }, [board]);
-
-  // Updates cookie information based on isPlayerHost value,
-  // skips the process if cookie is already true to not overwrite both values to false.
-  useEffect(() => {
-    if (cookieIsHost.isHost === true) {
-      return;
-    }
-    if (isPlayerHost) {
-      setCookieIsHost('isHost', 'true');
-    } else setCookieIsHost('isHost', 'false');
-  }, [isPlayerHost]);
 
   const ws = useWebsocketClient(handleBoardChangeMap, cookies.userId, roomCode || '');
 

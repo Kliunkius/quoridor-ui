@@ -28,7 +28,7 @@ const CameraRig: React.FC<CameraRigProps> = ({ position }) => {
       window.removeEventListener('mousedown', handleMouseDown);
     };
   }, []);
-  useFrame((state, delta) => {
+  useFrame((state) => {
     if (isMouseUp) {
       state.camera.position.lerp({ x, y, z }, CAMERA_MOVE_SPEED);
       state.camera.lookAt(CAMERA_TARGET_POSITION, CAMERA_TARGET_POSITION, CAMERA_TARGET_POSITION);

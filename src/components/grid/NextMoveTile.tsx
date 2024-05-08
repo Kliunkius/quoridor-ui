@@ -1,4 +1,4 @@
-import { CORNER_POSITION, SURFACE_ELEVATION } from '../constants';
+import BoardTile from './BoardTile';
 import { Coordinates } from './SquareTypes';
 
 type PropsNextMove = {
@@ -6,16 +6,7 @@ type PropsNextMove = {
   handleMovePlayer: () => void;
 };
 const NextMoveTile: React.FC<PropsNextMove> = ({ coordinates, handleMovePlayer }) => {
-  return (
-    <mesh
-      position={[CORNER_POSITION + coordinates.x / 2, SURFACE_ELEVATION, CORNER_POSITION + coordinates.y / 2]}
-      scale={[0.65, 0.01, 0.65]}
-      onClick={() => handleMovePlayer()}
-    >
-      <boxGeometry />
-      <meshBasicMaterial transparent opacity={0.5} color={'lime'} />
-    </mesh>
-  );
+  return <BoardTile coordinates={coordinates} opacity={0.5} color={'lime'} onClickFunction={handleMovePlayer} />;
 };
 
 export default NextMoveTile;

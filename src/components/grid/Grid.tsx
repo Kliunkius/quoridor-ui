@@ -6,10 +6,11 @@ import Hitbox from './Hitbox';
 import Wall from './Wall';
 import { formatMessage } from '../../hooks/useWebsocketClient';
 import { MessageTypes } from '../../hooks/websocketTypes';
-import PlayerTile from './PlayerTile';
+import PlayerCurrentTile from './PlayerCurrentTile';
 import NextMoveTile from './NextMoveTile';
 import GargoylePlayer from '../board/GargoylePlayer';
 import GargoyleEnemy from '../board/GargoyleEnemy';
+import BoardTile from './BoardTile';
 
 type PropsGrid = {
   board: Board;
@@ -44,6 +45,7 @@ const Grid: React.FC<PropsGrid> = ({ board, ws, yourTurn, playerID, isPlayerHost
           if (yourTurn && square.isWalkable) {
             const elementHitbox = (
               <Hitbox
+                key={key}
                 coordinates={coordinates}
                 isAvailable={square.isAvailable}
                 handlePlaceWall={() =>
@@ -53,24 +55,27 @@ const Grid: React.FC<PropsGrid> = ({ board, ws, yourTurn, playerID, isPlayerHost
             );
             gridNew[key] = [...(gridNew[key] || []), elementHitbox];
           } else if (square.isPlaced) {
-            const elementWall = <Wall coordinates={coordinates} color="orange" />;
+            const elementWall = <Wall key={key} coordinates={coordinates} color="orange" />;
             gridNew[key] = [...(gridNew[key] || []), elementWall];
           }
         } else if (square.type === SquareTypes.Player) {
           if (square?.playerId === playerID) {
             if (yourTurn) {
               const elementPlayerTile = (
-                <PlayerTile
+                <PlayerCurrentTile
+                  key={key + 'playerTile'}
                   coordinates={coordinates}
                   handleOnClick={() => setIsPressed((prevIsPressed) => !prevIsPressed)}
                 />
               );
               gridNew[key] = [...(gridNew[key] || []), elementPlayerTile];
             }
-            const elementGargoylePlayer = <GargoylePlayer isRotated={!isPlayerHost} coordinates={coordinates} />;
+            const elementGargoylePlayer = (
+              <GargoylePlayer key={key} isRotated={!isPlayerHost} coordinates={coordinates} />
+            );
             gridNew[key] = [...(gridNew[key] || []), elementGargoylePlayer];
-          } else if (square?.playerId && square?.playerId !== playerID) {
-            const elementGargoyleEnemy = <GargoyleEnemy isRotated={isPlayerHost} coordinates={coordinates} />;
+          } else if (square?.playerId) {
+            const elementGargoyleEnemy = <GargoyleEnemy key={key} isRotated={isPlayerHost} coordinates={coordinates} />;
             gridNew[key] = [...(gridNew[key] || []), elementGargoyleEnemy];
           }
         }
@@ -92,9 +97,12 @@ const Grid: React.FC<PropsGrid> = ({ board, ws, yourTurn, playerID, isPlayerHost
         if (square.type === SquareTypes.Player && square.isAvailable) {
           if (isPressed) {
             const elementNextMove = (
-              <NextMoveTile
+              <BoardTile
+                key={key}
                 coordinates={coordinates}
-                handleMovePlayer={() =>
+                opacity={0.5}
+                color="lime"
+                onClickFunction={() =>
                   ws.send(formatMessage(MessageTypes.MOVE, { type: SquareTypes.Player, coordinates }))
                 }
               />
