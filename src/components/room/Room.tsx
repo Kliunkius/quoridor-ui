@@ -4,13 +4,14 @@ import { useCookies } from 'react-cookie';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import useWebsocketClient, { formatMessage } from '../../hooks/useWebsocketClient';
-import { Board } from '../grid/SquareTypes';
+import { Board, SquareTypes } from '../grid/SquareTypes';
 import './Room.css';
 import { MessageTypes } from '../../hooks/websocketTypes';
 import Grid from '../grid/Grid';
 import StaticBoard from '../board/StaticBoard';
 import { Canvas } from '@react-three/fiber';
-import { CAMERA_STARTING_POSITION } from '../constants';
+import { CAMERA_DEFAULT_POSITION, CAMERA_STARTING_POSITION } from '../constants';
+import CameraRig from '../board/CameraRig';
 
 type Player = {
   ready: boolean;
@@ -23,8 +24,9 @@ const Room = () => {
   const [playerReady, setPlayerReady] = useState<boolean>(false);
   const [yourTurn, setYourTurn] = useState<boolean>(false);
   const [yourName, setYourName] = useState<string>('');
+  const [isPlayerHost, setIsPlayerHost] = useState<boolean>(false);
 
-  const [cookies, setCookie, removeCookie] = useCookies<string>(['userId']);
+  const [cookies, setCookie, removeCookie] = useCookies<string>(['userId', 'isHost']);
   const { roomCode } = useParams();
   const navigate = useNavigate();
 
@@ -35,11 +37,15 @@ const Room = () => {
         setOtherPlayer(props.otherPlayer);
         setYourName(props.yourName);
         setBoard(props.board);
+        setHost(props.board, props.userId);
       },
       [MessageTypes.READY]: (props: any) => {
         setYourTurn(props.yourTurn);
+        setBoard(props.board);
       },
       [MessageTypes.RECONNECT]: (props: any) => {
+        const value = cookies.isHost;
+        setIsPlayerHost(value);
         setBoard(props.board);
         setYourTurn(props.yourTurn);
       },
@@ -49,10 +55,18 @@ const Room = () => {
       },
       [MessageTypes.ROOM_DELETED]: (props: any) => {
         removeCookie('userId');
+        removeCookie('isHost');
         navigate(`/`);
       }
     };
   }, []);
+
+  const setHost = (board: Board, userId: string) => {
+    if (board[16].squares[8].type !== SquareTypes.Player) return;
+    const isPlayerHostValue = board[16].squares[8].playerId === userId;
+    setIsPlayerHost(isPlayerHostValue);
+    setCookie('isHost', isPlayerHostValue);
+  };
 
   const ws = useWebsocketClient(handleBoardChangeMap, cookies.userId, roomCode || '');
 
@@ -72,11 +86,20 @@ const Room = () => {
             flat
             linear
             camera={{
-              position: CAMERA_STARTING_POSITION
+              position: isPlayerHost
+                ? CAMERA_STARTING_POSITION
+                : [CAMERA_STARTING_POSITION[0], CAMERA_STARTING_POSITION[1], -CAMERA_STARTING_POSITION[2]]
             }}
           >
+            <CameraRig
+              position={
+                isPlayerHost
+                  ? CAMERA_DEFAULT_POSITION
+                  : [CAMERA_DEFAULT_POSITION[0], CAMERA_DEFAULT_POSITION[1], -CAMERA_DEFAULT_POSITION[2]]
+              }
+            />
             <StaticBoard />
-            <Grid board={board} ws={ws} yourTurn={yourTurn} />
+            <Grid board={board} ws={ws} yourTurn={yourTurn} playerID={cookies.userId} isPlayerHost={isPlayerHost} />
           </Canvas>
           <div className="user-information">
             {yourTurn && playerReady && !_.isEmpty(otherPlayer) && <div>Your turn</div>}
