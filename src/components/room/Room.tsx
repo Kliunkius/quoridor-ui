@@ -37,11 +37,7 @@ const Room = () => {
         setOtherPlayer(props.otherPlayer);
         setYourName(props.yourName);
         setBoard(props.board);
-        if (props.board[16].squares[8].type !== SquareTypes.Player) return;
-        const isPlayerHostValue = props.board[16].squares[8].playerId === props.userId;
-        console.log(isPlayerHost);
-        setIsPlayerHost(isPlayerHostValue);
-        setCookie('isHost', isPlayerHostValue);
+        setHost(props.board, props.userId);
       },
       [MessageTypes.READY]: (props: any) => {
         setYourTurn(props.yourTurn);
@@ -49,7 +45,6 @@ const Room = () => {
       },
       [MessageTypes.RECONNECT]: (props: any) => {
         const value = cookies.isHost;
-        console.log(value);
         setIsPlayerHost(value);
         setBoard(props.board);
         setYourTurn(props.yourTurn);
@@ -65,6 +60,13 @@ const Room = () => {
       }
     };
   }, []);
+
+  const setHost = (board: Board, userId: string) => {
+    if (board[16].squares[8].type !== SquareTypes.Player) return;
+    const isPlayerHostValue = board[16].squares[8].playerId === userId;
+    setIsPlayerHost(isPlayerHostValue);
+    setCookie('isHost', isPlayerHostValue);
+  };
 
   const ws = useWebsocketClient(handleBoardChangeMap, cookies.userId, roomCode || '');
 
