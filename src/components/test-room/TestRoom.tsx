@@ -13,12 +13,19 @@ type Player = {
   name: string;
 };
 
+enum Result {
+  UNDECIDED,
+  WIN,
+  LOSE
+}
+
 const TestRoom = () => {
   const [board, setBoard] = useState<Board>({} as Board);
   const [otherPlayer, setOtherPlayer] = useState<Player | undefined>(undefined);
   const [playerReady, setPlayerReady] = useState<boolean>(false);
   const [yourTurn, setYourTurn] = useState<boolean>(false);
   const [yourName, setYourName] = useState<string>('');
+  const [result, setResult] = useState<Result>(Result.UNDECIDED);
 
   const [cookies, setCookie, removeCookie] = useCookies<string>(['userId']);
   const { roomCode } = useParams();
@@ -46,6 +53,10 @@ const TestRoom = () => {
       [MessageTypes.ROOM_DELETED]: (props: any) => {
         removeCookie('userId');
         navigate(`/`);
+      },
+      [MessageTypes.FINISH]: (props: any) => {
+        setBoard(props.board);
+        setResult(props.win ? Result.WIN : Result.LOSE);
       }
     };
   }, []);
@@ -80,6 +91,7 @@ const TestRoom = () => {
             )}
           </div>
           <TestBoard board={board} ws={ws} playerId={cookies.userId} yourTurn={yourTurn} />
+          {result !== Result.UNDECIDED && <div>{result === Result.WIN ? 'YOU WON' : 'YOU LOST'}</div>}
         </div>
       )}
     </>
