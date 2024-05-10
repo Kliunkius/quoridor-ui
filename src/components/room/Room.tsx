@@ -18,6 +18,12 @@ type Player = {
   name: string;
 };
 
+enum Result {
+  UNDECIDED,
+  WIN,
+  LOSE
+}
+
 const Room = () => {
   const [board, setBoard] = useState<Board>({});
   const [otherPlayer, setOtherPlayer] = useState<Player | undefined>(undefined);
@@ -25,6 +31,8 @@ const Room = () => {
   const [yourTurn, setYourTurn] = useState<boolean>(false);
   const [yourName, setYourName] = useState<string>('');
   const [isPlayerHost, setIsPlayerHost] = useState<boolean>(false);
+  const [boardLoaded, setBoardLoaded] = useState<boolean>(false);
+  const [result, setResult] = useState<Result>(Result.UNDECIDED);
 
   const [cookies, setCookie, removeCookie] = useCookies<string>(['userId', 'isHost']);
   const { roomCode } = useParams();
@@ -57,6 +65,10 @@ const Room = () => {
         removeCookie('userId');
         removeCookie('isHost');
         navigate(`/`);
+      },
+      [MessageTypes.FINISH]: (props: any) => {
+        setBoard(props.board);
+        setResult(props.win ? Result.WIN : Result.LOSE);
       }
     };
   }, []);
@@ -116,6 +128,9 @@ const Room = () => {
               </button>
             )}
           </div>
+          {result !== Result.UNDECIDED && (
+            <div className="centered">{result === Result.WIN ? 'YOU WON' : 'YOU LOST'}</div>
+          )}
         </div>
       )}
     </>
